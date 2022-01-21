@@ -72,7 +72,7 @@ function showTodoList(element) {
       }</span> <span class="text-muted">${
         todo.time ? "at:" + todo.time : ""
       }</span> ${todo.finished ? "|| finished at:" + todo.finished : ""}</div>
-                <div class="col-2">
+                <div class="col-lg-2">
                   <div class="d-flex align-items-center">
                 <button class="fas fa-trash-alt badge bg-danger del-btn btn-sm" data-id="${
                   todo._id
