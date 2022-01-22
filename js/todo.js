@@ -1,6 +1,10 @@
 // Tost
 let timeOut;
-
+const db = window.localStorage;
+const dbName = "_ourToDOs";
+const div = document.getElementById("todoList");
+const input = document.querySelector("input");
+//tost message
 function showTost(message) {
   // Get the snackbar DIV
   var x = document.getElementById("snackbar");
@@ -13,12 +17,9 @@ function showTost(message) {
   }, 1000 * 2);
 }
 
-const div = document.getElementById("todoList");
-const input = document.querySelector("input");
 input.addEventListener("keypress", function (e) {
   clearTimeout(timeOut);
   const { value } = e.target;
-  //   showTost(`${e.key}:${e.keyCode}`);
   if (e.key === "Enter") {
     if (!value) return;
     const newTodo = {
@@ -34,34 +35,28 @@ input.addEventListener("keypress", function (e) {
 
 //save todo in localStorage
 function saveInDB(todo) {
-  const db = window.localStorage;
-  const dbName = "_ourToDOs";
   if (db.getItem(dbName)) {
     const old = JSON.parse(db.getItem(dbName));
     db.setItem(dbName, JSON.stringify([...old, todo]));
+    clearTimeout(timeOut);
     showTost("Todo added successfully...");
-    // div.textContent = "";
-    // showTodoList(div);
   } else {
     db.setItem(dbName, JSON.stringify([todo]));
+    clearTimeout(timeOut);
     showTost("Todo added successfully...");
-    // div.textContent = "";
-    // showTodoList(div);
   }
 }
 
+//get lists form localStorage
 function getTodoLists() {
-  const db = window.localStorage;
-  const dbName = "_ourToDOs";
   if (db.getItem(dbName)) {
     return JSON.parse(db.getItem(dbName));
   }
   return [];
 }
 
+//show all list in the ui
 function showTodoList(element) {
-  const db = window.localStorage;
-  const dbName = "_ourToDOs";
   if (db.getItem(dbName)) {
     const todoLists = getTodoLists();
     todoLists.forEach((todo) => {
@@ -87,14 +82,13 @@ function showTodoList(element) {
       const div = document.createElement("div");
       div.innerHTML = li;
       element.appendChild(div);
+      addDelete();
     });
-    addDelete();
   }
   return;
 }
 
-//delete todo
-
+//add delete function to all delete buttons's
 function addDelete() {
   const btns = document.querySelectorAll(".del-btn");
   const btns2 = document.querySelectorAll(".done-btn");
@@ -114,47 +108,35 @@ function addDelete() {
   );
 }
 
-//delete
+//delete todo->single
 function handleDelete(id) {
-  if (window.confirm("are you sure?")) {
-    const db = window.localStorage;
-    const dbName = "_ourToDOs";
-    const exits = getTodoLists();
-    exits.forEach((todo) => {
-      if (todo._id == id) {
-        db.setItem(dbName, JSON.stringify(arrayRemove(exits, todo)));
-        showTost("deleted successfully..", id);
-        div.textContent = "";
-        showTodoList(div);
-      }
-    });
-  }
+  const exits = getTodoLists();
+  const rest = exits.filter((todo) => todo._id != id) || exits;
+  db.setItem(dbName, JSON.stringify(rest));
+  clearTimeout(timeOut);
+  showTost("deleted successfully...");
+  div.textContent = "";
+  showTodoList(div);
 }
 
-function arrayRemove(arr, value) {
-  return arr.filter(function (ele) {
-    return ele !== value;
+//mark as done
+function makeDone(id) {
+  const exits = getTodoLists();
+  exits.forEach((todo) => {
+    if (todo._id == id) {
+      todo.isDone = true;
+      todo.finished = new Date().toLocaleString();
+      db.setItem(dbName, JSON.stringify(exits));
+      clearTimeout(timeOut);
+      showTost("congratulations! work done...", id);
+    }
   });
 }
 
-function makeDone(id) {
-  if (window.confirm("are you sure?")) {
-    const db = window.localStorage;
-    const dbName = "_ourToDOs";
-    const exits = getTodoLists();
-    exits.forEach((todo) => {
-      if (todo._id == id) {
-        todo.isDone = true;
-        todo.finished = new Date().toLocaleString();
-        db.setItem(dbName, JSON.stringify(exits));
-        showTost("congratulations! work done...", id);
-      }
-    });
-  }
-}
-
+//call to show all lists in the ui
 showTodoList(div);
 
+//get realtime changes
 setInterval(() => {
   div.textContent = "";
   showTodoList(div);
